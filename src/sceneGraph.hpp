@@ -40,7 +40,10 @@ struct SceneNode {
 	glm::vec3 rotation;
 	glm::vec3 scale;
 
-	// A transformation matrix representing the transformation of the node's location relative to its parent. This matrix is updated every frame.
+	// The ModelView matrix for preserving angles is needed
+	glm::mat4 MVmatrix;
+
+	// A MVP transformation matrix representing the transformation of the node's location relative to its parent. This matrix is updated every frame.
 	glm::mat4 currentTransformationMatrix;
 
 	// The location of the node's reference point
@@ -49,6 +52,9 @@ struct SceneNode {
 	// The ID of the VAO containing the "appearance" of this SceneNode.
 	int vertexArrayObjectID;
 	unsigned int VAOIndexCount;
+
+	// The ID used for of lights 
+	unsigned lightID;
 
 	// Node type is used to determine how to handle the contents of a node
 	SceneNodeType nodeType;
