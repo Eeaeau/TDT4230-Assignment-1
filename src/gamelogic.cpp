@@ -53,6 +53,7 @@ const glm::vec3 padDimensions(30, 3, 40);
 
 glm::vec3 ballPosition(0, ballRadius + padDimensions.y, boxDimensions.z / 2);
 glm::vec3 ballDirection(1, 1, 0.2f);
+glm::vec3 cameraPosition;
 
 CommandLineOptions options;
 
@@ -345,7 +346,7 @@ void updateFrame(GLFWwindow* window) {
 
     glm::mat4 projection = glm::perspective(glm::radians(80.0f), float(windowWidth) / float(windowHeight), 0.1f, 350.f);
 
-    glm::vec3 cameraPosition = glm::vec3(0, 2, -20);
+    cameraPosition = glm::vec3(0, 2, -20);
 
     // Some math to make the camera move in a nice way
     float lookRotation = -0.6 / (1 + exp(-5 * (padPositionX-0.5))) + 0.3;
@@ -384,7 +385,7 @@ void updateNodeTransformations(SceneNode* node, glm::mat4 transformationThusFar,
             * glm::scale(node->scale)
             * glm::translate(-node->referencePoint);
 
-    node->MVmatrix = transformationMatrix; // model view  
+    node->modelMatrix = transformationMatrix; // M
     node->currentTransformationMatrix = transformationThusFar * transformationMatrix; // model view projection matrix
 
     switch(node->nodeType) {
@@ -399,8 +400,18 @@ void updateNodeTransformations(SceneNode* node, glm::mat4 transformationThusFar,
 }
 
 void renderNode(SceneNode* node) {
-    glUniformMatrix4fv(3, 1, GL_FALSE, glm::value_ptr(node->currentTransformationMatrix));
-    glUniformMatrix4fv(4, 1, GL_FALSE, glm::value_ptr(node->MVmatrix));
+    glUniformMatrix4fv(3, 1, GL_FALSE, glm::value_ptr(node->currentTransformationMatrix)); // MVP
+
+    //glUniformMatrix4fv(4, 1, GL_FALSE, glm::value_ptr(node->modelMatrix));
+
+    //glUniformMatrix4fv(glGetUniformLocation(shader->get(), "modelViewMatrix"), 1, GL_FALSE, glm::value_ptr(node->MVmatrix));
+    //glUniformMatrix4fv(shader->getUniformFromName("modelViewMatrix"), 1, GL_FALSE, glm::value_ptr(node->modelMatrix));
+    glUniformMatrix4fv(shader->getUniformFromName("modelMatrix"), 1, GL_FALSE, glm::value_ptr(node->modelMatrix));
+
+    glm::mat3 normalMatrix = glm::mat3(glm::transpose(glm::inverse(node->currentTransformationMatrix)));
+    glUniformMatrix4fv(shader->getUniformFromName("normalMatrix"), 1, GL_FALSE, glm::value_ptr(normalMatrix));
+    
+    //glUniformMatrix3fv(5, 1, GL_FALSE, glm::value_ptr(glm::vec3(1.0, 0.3, 0.78)));
 
     switch(node->nodeType) {
         case GEOMETRY:
@@ -425,6 +436,7 @@ void renderNode(SceneNode* node) {
 }
 
 void renderFrame(GLFWwindow* window) {
+    //glUniform3fv(shader->getUniformFromName("viewPos"), 1, glm::value_ptr(cameraPosition));
     int windowWidth, windowHeight;
     glfwGetWindowSize(window, &windowWidth, &windowHeight);
     glViewport(0, 0, windowWidth, windowHeight);

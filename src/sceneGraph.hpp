@@ -40,8 +40,11 @@ struct SceneNode {
 	glm::vec3 rotation;
 	glm::vec3 scale;
 
-	// The ModelView matrix for preserving angles is needed
-	glm::mat4 MVmatrix;
+	// The Model matrix for preserving angles is needed
+	glm::mat4 modelMatrix;
+
+	// The View matrix
+	glm::mat4 viewMatrix;
 
 	// A MVP transformation matrix representing the transformation of the node's location relative to its parent. This matrix is updated every frame.
 	glm::mat4 currentTransformationMatrix;
