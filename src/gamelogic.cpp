@@ -103,7 +103,7 @@ void mouseCallback(GLFWwindow* window, double x, double y) {
 //LightSource lightSources[3];
 
 std::vector<SceneNode*> lightSources;
-unsigned int NumLightProcessed = 0;
+int NumLightProcessed = 0;
 
 void initGame(GLFWwindow* window, CommandLineOptions gameOptions) {
     buffer = new sf::SoundBuffer();
@@ -137,10 +137,15 @@ void initGame(GLFWwindow* window, CommandLineOptions gameOptions) {
     padNode  = createSceneNode();
     ballNode = createSceneNode();
     
-    for (auto& node : lightSources) {
-        node = createSceneNode();
-        node->nodeType = POINT_LIGHT;
+
+    for (int i = 0; i < 3; ++i) {
+        lightSources.push_back(createSceneNode());
     }
+
+    //for (auto& node : lightSources) {
+    //    node = createSceneNode();
+    //    //node->nodeType = POINT_LIGHT;
+    //}
 
     //ballLightNode = createSceneNode();
     //ballLightNode->nodeType = POINT_LIGHT;
@@ -406,7 +411,10 @@ void renderNode(SceneNode* node) {
             break;
         case POINT_LIGHT: 
             //glm::vec3 lightPos = glm::vec3(node->MVmatrix * glm::vec4(node->position, 1.0f));
-            glUniform4fv(4, 1, glm::value_ptr(node->currentTransformationMatrix * glm::vec4(0.0, 0.0, 0.0, 1.0)));
+            //int lightOffset = 7 + NumLightProcessed;
+            glUniform1ui(7, lightSources.size());
+            glUniform4fv(8 + NumLightProcessed, 1, glm::value_ptr(node->currentTransformationMatrix * glm::vec4(0.0, 0.0, 0.0, 1.0)));
+            NumLightProcessed++;
             break;
         case SPOT_LIGHT: break;
     }
