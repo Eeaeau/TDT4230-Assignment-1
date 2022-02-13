@@ -405,8 +405,8 @@ void renderNode(SceneNode* node) {
             }
             break;
         case POINT_LIGHT: 
-            glm::vec3 lightPos = glm::vec3(node->MVmatrix * glm::vec4(node->position, 1.0f));
-            glUniform3f(7, lightPos[0], lightPos[1], lightPos[2]);
+            //glm::vec3 lightPos = glm::vec3(node->MVmatrix * glm::vec4(node->position, 1.0f));
+            glUniform4fv(4, 1, glm::value_ptr(node->currentTransformationMatrix * glm::vec4(0.0, 0.0, 0.0, 1.0)));
             break;
         case SPOT_LIGHT: break;
     }
