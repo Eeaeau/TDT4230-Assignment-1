@@ -94,10 +94,16 @@ void mouseCallback(GLFWwindow* window, double x, double y) {
 }
 
 //// A few lines to help you if you've never used c++ structs
- //struct LightSource {
- //    SceneNode a_placeholder_value;
- //};
- //LightSource lightSources[/*Put number of light sources you want here*/];
+//struct LightSource {
+//    LightSource(): SceneNode() {
+//        
+//
+//    }
+// };
+//LightSource lightSources[3];
+
+std::vector<SceneNode*> lightSources;
+unsigned int NumLightProcessed = 0;
 
 void initGame(GLFWwindow* window, CommandLineOptions gameOptions) {
     buffer = new sf::SoundBuffer();
@@ -131,12 +137,17 @@ void initGame(GLFWwindow* window, CommandLineOptions gameOptions) {
     padNode  = createSceneNode();
     ballNode = createSceneNode();
     
-    ballLightNode = createSceneNode();
-    ballLightNode->nodeType = POINT_LIGHT;
-    staticLightNode = createSceneNode();
-    staticLightNode->nodeType = POINT_LIGHT;
-    animatedLightNode = createSceneNode();
-    animatedLightNode->nodeType = POINT_LIGHT;
+    for (auto& node : lightSources) {
+        node = createSceneNode();
+        node->nodeType = POINT_LIGHT;
+    }
+
+    //ballLightNode = createSceneNode();
+    //ballLightNode->nodeType = POINT_LIGHT;
+    //staticLightNode = createSceneNode();
+    //staticLightNode->nodeType = POINT_LIGHT;
+    //animatedLightNode = createSceneNode();
+    //animatedLightNode->nodeType = POINT_LIGHT;
 
     // attatch to scene graph
     rootNode->children.push_back(boxNode);
@@ -145,9 +156,13 @@ void initGame(GLFWwindow* window, CommandLineOptions gameOptions) {
 
     rootNode->children.push_back(ballNode);
 
-    ballNode->children.push_back(ballLightNode);
-    rootNode->children.push_back(staticLightNode);
-    padNode->children.push_back(animatedLightNode);
+    //ballNode->children.push_back(ballLightNode);
+    //rootNode->children.push_back(staticLightNode);
+    //padNode->children.push_back(animatedLightNode);
+    
+    ballNode->children.push_back(lightSources[0]);
+    rootNode->children.push_back(lightSources[1]);
+    padNode->children.push_back(lightSources[2]);
 
     // assign VAO
     boxNode->vertexArrayObjectID  = boxVAO;
@@ -349,12 +364,12 @@ void updateFrame(GLFWwindow* window) {
         boxNode->position.z - (boxDimensions.z/2) + (padDimensions.z/2) + (1 - padPositionZ) * (boxDimensions.z - padDimensions.z)
     };
 
-    updateNodeTransformations(rootNode, VP);
+    updateNodeTransformations(rootNode, VP, cameraTransform);
 
 
 }
 
-void updateNodeTransformations(SceneNode* node, glm::mat4 transformationThusFar) {
+void updateNodeTransformations(SceneNode* node, glm::mat4 transformationThusFar, glm::mat4 viewTransformation) {
     glm::mat4 transformationMatrix =
               glm::translate(node->position)
             * glm::translate(node->referencePoint)
@@ -374,7 +389,7 @@ void updateNodeTransformations(SceneNode* node, glm::mat4 transformationThusFar)
     }
 
     for(SceneNode* child : node->children) {
-        updateNodeTransformations(child, node->currentTransformationMatrix);
+        updateNodeTransformations(child, node->currentTransformationMatrix, viewTransformation);
     }
 }
 
@@ -405,6 +420,6 @@ void renderFrame(GLFWwindow* window) {
     int windowWidth, windowHeight;
     glfwGetWindowSize(window, &windowWidth, &windowHeight);
     glViewport(0, 0, windowWidth, windowHeight);
-
+    NumLightProcessed = 0; // reset 
     renderNode(rootNode);
 }

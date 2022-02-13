@@ -60,6 +60,14 @@ struct SceneNode {
 	SceneNodeType nodeType;
 };
 
+
+//struct LightNode: SceneNode {
+//	LightNode() {
+//		nodeType = POINT_LIGHT;
+//	}
+//	
+//};
+
 SceneNode* createSceneNode();
 void addChild(SceneNode* parent, SceneNode* child);
 void printNode(SceneNode* node);
