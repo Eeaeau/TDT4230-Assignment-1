@@ -400,7 +400,8 @@ void updateNodeTransformations(SceneNode* node, glm::mat4 transformationThusFar,
 }
 
 void renderNode(SceneNode* node) {
-    glUniformMatrix4fv(3, 1, GL_FALSE, glm::value_ptr(node->currentTransformationMatrix)); // MVP
+    //glUniformMatrix4fv(3, 1, GL_FALSE, glm::value_ptr(node->currentTransformationMatrix)); // MVP
+    glUniformMatrix4fv(shader->getUniformFromName("MVP"), 1, GL_FALSE, glm::value_ptr(node->currentTransformationMatrix)); // MVP
 
     //glUniformMatrix4fv(4, 1, GL_FALSE, glm::value_ptr(node->modelMatrix));
 
@@ -413,6 +414,7 @@ void renderNode(SceneNode* node) {
     
     //glUniformMatrix3fv(5, 1, GL_FALSE, glm::value_ptr(glm::vec3(1.0, 0.3, 0.78)));
 
+    std::string number = std::to_string(NumLightProcessed);
     switch(node->nodeType) {
         case GEOMETRY:
             if(node->vertexArrayObjectID != -1) {
@@ -423,8 +425,10 @@ void renderNode(SceneNode* node) {
         case POINT_LIGHT: 
             //glm::vec3 lightPos = glm::vec3(node->MVmatrix * glm::vec4(node->position, 1.0f));
             //int lightOffset = 7 + NumLightProcessed;
-            glUniform1ui(7, lightSources.size());
-            glUniform4fv(8 + NumLightProcessed, 1, glm::value_ptr(node->currentTransformationMatrix * glm::vec4(0.0, 0.0, 0.0, 1.0)));
+            //glUniform1ui(7, lightSources.size());
+            auto pos = glm::vec3(node->currentTransformationMatrix * glm::vec4(0.0, 0.0, 0.0, 1.0));
+            glUniform3fv(shader->getUniformFromName(("pointLights["+ number +"].position").c_str()), 1, glm::value_ptr(pos));
+            //glUniform4fv(6, 1, glm::value_ptr(node->currentTransformationMatrix * glm::vec4(0.0, 0.0, 0.0, 1.0)));
             NumLightProcessed++;
             break;
         case SPOT_LIGHT: break;
