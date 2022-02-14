@@ -436,7 +436,7 @@ void renderNode(SceneNode* node) {
 }
 
 void renderFrame(GLFWwindow* window) {
-    //glUniform3fv(shader->getUniformFromName("viewPos"), 1, glm::value_ptr(cameraPosition));
+    glUniform3fv(shader->getUniformFromName("viewPos"), 1, glm::value_ptr(cameraPosition));
     int windowWidth, windowHeight;
     glfwGetWindowSize(window, &windowWidth, &windowHeight);
     glViewport(0, 0, windowWidth, windowHeight);

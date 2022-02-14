@@ -7,7 +7,7 @@ in layout(location = 8) vec4 lightPos[3];
 
 
 in vec3 FragPos;
-//in vec3 viewPos;
+in vec3 viewPos;
 
 out vec4 color;
 

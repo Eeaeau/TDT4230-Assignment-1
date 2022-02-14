@@ -44,7 +44,7 @@ struct SceneNode {
 	glm::mat4 modelMatrix;
 
 	// The View matrix
-	glm::mat4 viewMatrix;
+	//glm::mat4 viewMatrix;
 
 	// A MVP transformation matrix representing the transformation of the node's location relative to its parent. This matrix is updated every frame.
 	glm::mat4 currentTransformationMatrix;
