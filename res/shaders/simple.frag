@@ -20,7 +20,10 @@ struct PointLight {
 };  
 
 uniform vec3 viewPos;
+uniform vec3 lightTest;
 uniform PointLight pointLights[NR_POINT_LIGHTS];
+uniform mat3 normalMatrix;
+
 
 //in vec3 fragPos;
 in vec3 aTestVar;
@@ -43,18 +46,16 @@ vec3 diffuseColor = vec3(1, 1, 1);
 
 float specularStrength = 0.5;
 
-vec3 lightColor = vec3(1);
+vec3 lightColor = vec3(1, 0, 0);
 
 float constant = 1.0;
-float linear = 0.09;
-float quadratic = 0.032;
+float linear = 0.0009;
+float quadratic = 0.00032;
 
 
 vec3 CalcPointLight(PointLight pointLight, vec3 normal, vec3 fragPos, vec3 viewDir) {
     
-        vec3 pointLightPos = pointLight.position;
-//        vec3 pointLightPos = vec3(0.1);
-        vec3 lightDir = normalize(pointLightPos - fragPos); 
+        vec3 lightDir = normalize(pointLight.position - fragPos); 
 
         // diffuse shading
         float diff = max(dot(normal, lightDir), 0.0);
@@ -83,22 +84,21 @@ vec3 CalcPointLight(PointLight pointLight, vec3 normal, vec3 fragPos, vec3 viewD
 
 void main()
 {
-    // color =  normalize(vec4(1.0, 1.0, -1.0, 1.0)) * vec4(0.5 * normal_in + 0.5, 1.0);
-    color =  vec4(0.5 * normal_in + 0.5, 1.0);
-    color =  vec4(1.0,0.0,0.0, 1.0);
+//    color =  normalize(vec4(1.0, 1.0, -1.0, 1.0)) * vec4(0.5 * normal_in + 0.5, 1.0);
+//    color =  vec4(0.5 * normal_in + 0.5, 1.0);
+//    color =  vec4(1.0,0.0,0.0, 1.0);
 
     vec3 normal = normalize(normal_in);
+//    vec3 normal = normalize(normalMatrix * normal_in);
+
     vec3 viewDir = normalize(viewPos - fragPos);
     vec3 result = vec3(0.2);
 
-    for	(int i = 0; i < 2; i++) {
-//        currentLightPos = ;
+    for	(int i = 0; i < NR_POINT_LIGHTS; i++) {
+
         result += CalcPointLight(pointLights[i], normal, fragPos, viewDir);
 
     }
-    
 
-    //color = vec4(normalize(normal_in), 1.0);
-    //color = vec4(lightPos[0].xyz, 1.0);
     color = vec4(result, 1.0);
 }
