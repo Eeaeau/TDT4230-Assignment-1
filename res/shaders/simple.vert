@@ -33,10 +33,6 @@ void main()
     textureCoordinates_out = textureCoordinates_in;
 
     gl_Position = MVP * vec4(position, 1.0f);
-    // gl_NormalMatrix = normalMatrix
     
     fragPos = vec3(modelMatrix * vec4(position, 1.0f));
-//    fragPos = vec3(0.5);
-//    aTestVar = vec3(0.2);
-//    fragPos = viewPos;
 }

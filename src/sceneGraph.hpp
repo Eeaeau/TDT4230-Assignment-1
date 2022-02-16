@@ -42,6 +42,7 @@ struct SceneNode {
 
 	// The Model matrix for preserving angles is needed
 	glm::mat4 modelMatrix;
+	glm::mat4 modelViewMatrix;
 
 	// The View matrix
 	//glm::mat4 viewMatrix;
