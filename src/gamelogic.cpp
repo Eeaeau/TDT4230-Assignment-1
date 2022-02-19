@@ -96,10 +96,16 @@ void mouseCallback(GLFWwindow* window, double x, double y) {
 
 //// A few lines to help you if you've never used c++ structs
 //struct LightSource {
-//    LightSource(): SceneNode() {
-//        
-//
+//    LightSource() {
+//        lightColor = glm::vec3(4);
+//        float constant = 1.0;
+//        float linear = 0.0009;
+//        float quadratic = 0.0032;
 //    }
+//    glm::vec3 lightColor;
+//    float constant;
+//    float linear;
+//    float quadratic;
 // };
 //LightSource lightSources[3];
 
@@ -150,11 +156,16 @@ void initGame(GLFWwindow* window, CommandLineOptions gameOptions) {
 
     ballLightNode = createSceneNode();
     ballLightNode->nodeType = POINT_LIGHT;
+    ballLightNode->lightColor = glm::vec3(0, 0, 0);
+
     staticLightNode = createSceneNode();
     staticLightNode->nodeType = POINT_LIGHT;
+    staticLightNode->lightColor = glm::vec3(10);
+
     animatedLightNode = createSceneNode();
     animatedLightNode->nodeType = POINT_LIGHT;
-
+    animatedLightNode->position = glm::vec3(0, 0, 1);
+    animatedLightNode->lightColor = glm::vec3(0, 0, 0);
 
     // attatch to scene graph
     rootNode->children.push_back(boxNode);
@@ -405,18 +416,11 @@ void updateNodeTransformations(SceneNode* node, glm::mat4 transformationThusFar,
 void renderNode(SceneNode* node) {
     //glUniformMatrix4fv(3, 1, GL_FALSE, glm::value_ptr(node->currentTransformationMatrix)); // MVP
     glUniformMatrix4fv(shader->getUniformFromName("MVP"), 1, GL_FALSE, glm::value_ptr(node->currentTransformationMatrix)); // MVP
-
-    //glUniformMatrix4fv(4, 1, GL_FALSE, glm::value_ptr(node->modelMatrix));
-
-    //glUniformMatrix4fv(glGetUniformLocation(shader->get(), "modelViewMatrix"), 1, GL_FALSE, glm::value_ptr(node->MVmatrix));
     glUniformMatrix4fv(shader->getUniformFromName("modelViewMatrix"), 1, GL_FALSE, glm::value_ptr(node->modelViewMatrix));
     glUniformMatrix4fv(shader->getUniformFromName("modelMatrix"), 1, GL_FALSE, glm::value_ptr(node->modelMatrix));
 
     glm::mat3 normalMatrix = glm::mat3(glm::transpose(glm::inverse(node->modelMatrix)));
     glUniformMatrix3fv(shader->getUniformFromName("normalMatrix"), 1, GL_FALSE, glm::value_ptr(normalMatrix));
-    //glUniformMatrix3fv(shader->getUniformFromName("normalMatrix"), 1, GL_FALSE, glm::value_ptr(glm::mat3(glm::vec3(1),glm::vec3(1)), vec3(mv[2])););
-    
-    //glUniformMatrix3fv(5, 1, GL_FALSE, glm::value_ptr(glm::vec3(1.0, 0.3, 0.78)));
 
     std::string number = std::to_string(NumLightProcessed);
     switch(node->nodeType) {
@@ -427,16 +431,15 @@ void renderNode(SceneNode* node) {
             }
             break;
         case POINT_LIGHT: 
-            //glm::vec3 lightPos = glm::vec3(node->MVmatrix * glm::vec4(node->position, 1.0f));
-            //int lightOffset = 7 + NumLightProcessed;
             //glUniform1ui(7, lightSources.size());
             auto pos = (node->currentTransformationMatrix * glm::vec4(0.0, 0.0, 0.0, 1.0));
-            //glUniform3fv(shader->getUniformFromName("lightTest"), 1, glm::value_ptr(glm::vec3(pos.x, pos.y, pos.z)));
             glUniform3fv(shader->getUniformFromName(("pointLights["+ number +"].position").c_str()), 1, glm::value_ptr(glm::vec3(pos.x, pos.y, pos.z)));
-            //glUniform3fv(shader->getUniformFromName(("pointLights["+ number +"].position").c_str()), 1, glm::value_ptr(glm::vec3(100, 2, 0)));
-            //glUniform4fv(6, 1, glm::value_ptr(node->currentTransformationMatrix * glm::vec4(0.0, 0.0, 0.0, 1.0)));
-            //std::cout << pos.x;
-            //std::cout << pos.x << "\n";
+            //glUniform3fv(shader->getUniformFromName(("pointLights["+ number +"].lightColor").c_str()), 1, glm::value_ptr(lightSources[NumLightProcessed].lightColor));
+            glUniform3fv(shader->getUniformFromName(("pointLights["+ number +"].lightColor").c_str()), 1, glm::value_ptr(node->lightColor));
+
+            glUniform1f(shader->getUniformFromName(("pointLight[" + number + "].constant").c_str()), node->constant);
+            glUniform1f(shader->getUniformFromName(("pointLight[" + number + "].linear").c_str()), node->linear);
+            glUniform1f(shader->getUniformFromName(("pointLight[" + number + "].quadratic").c_str()), 0.0f);
             NumLightProcessed++;
             
             break;
@@ -451,6 +454,9 @@ void renderNode(SceneNode* node) {
 void renderFrame(GLFWwindow* window) {
     glUniform3fv(shader->getUniformFromName("viewPos"), 1, glm::value_ptr(cameraPosition));
     glUniform3fv(shader->getUniformFromName("lightTest"), 1, glm::value_ptr(glm::vec3(1, 0, 0)));
+
+    auto ballPos = glm::vec3(ballNode->modelMatrix * glm::vec4(0.0, 0.0, 0.0, 1.0));
+    glUniform3fv(shader->getUniformFromName("ballPos"), 1, glm::value_ptr(ballPos));
     int windowWidth, windowHeight;
     glfwGetWindowSize(window, &windowWidth, &windowHeight);
     glViewport(0, 0, windowWidth, windowHeight);
