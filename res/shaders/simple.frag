@@ -60,19 +60,20 @@ vec3 lightColor = vec3(4);
 float quadratic = 0.0032;
 
 
-float ballRadius = 0.4;
+float ballRadius = 1;
 
 float CalcShadow(vec3 normal, vec3 viewDir, vec3 lightDir) {
     
     float x = length(normal);
     
-    return 0.01;
+    return 0.1;
 }
 
 
 vec3 CalcPointLight(PointLight pointLight, vec3 normal, vec3 fragPos, vec3 viewDir) {
     
-        vec3 lightDir = normalize(pointLight.position - fragPos); 
+        vec3 lightVec = pointLight.position - fragPos; 
+        vec3 lightDir = normalize(lightVec); 
 
         // diffuse shading
         float diff = max(dot(normal, lightDir), 0.0);
@@ -87,11 +88,14 @@ vec3 CalcPointLight(PointLight pointLight, vec3 normal, vec3 fragPos, vec3 viewD
 
         // shadow 
 
-        vec3 ballDir = normalize(ballPos - fragPos);
+        vec3 ballVec = ballPos - fragPos;
+        vec3 ballDir = normalize(ballVec);
 
-        vec3 reject = CalcReject(ballDir, lightDir);
+        vec3 reject = CalcReject(ballVec, lightVec);
+//        vec3 reject = CalcReject(ballDir, lightDir);
 
         float shadeFactor = max(length(reject)-ballRadius, 0);
+        shadeFactor = min(shadeFactor, 1);
 //        float shadeFactor = 1.0;
         // combine shaders in result 
 
@@ -119,7 +123,7 @@ void main()
 //    vec3 normal = normalize(normalMatrix * normal_in);
 
     vec3 viewDir = normalize(viewPos - fragPos);
-    vec3 result = vec3(0.2);
+//    vec3 result = vec3(0.2);
 
     for	(int i = 0; i < NR_POINT_LIGHTS; i++) {
 
