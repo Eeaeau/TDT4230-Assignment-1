@@ -10,16 +10,20 @@ in layout(location = 4) vec3 fragPos;
 
 struct PointLight {    
     vec3 position;
-//    float constant;
-//    float linear;
-//    float quadratic;  
-//
+
+    vec3 lightColor;
+
+    float constant;
+    float linear;
+    float quadratic;  
+
 //    vec3 ambient;
 //    vec3 diffuse;
 //    vec3 specular;
 };  
 
 uniform vec3 viewPos;
+uniform vec3 ballPos;
 uniform vec3 lightTest;
 uniform PointLight pointLights[NR_POINT_LIGHTS];
 uniform mat3 normalMatrix;
@@ -34,23 +38,36 @@ out vec4 color;
 float rand(vec2 co) { return fract(sin(dot(co.xy, vec2(12.9898,78.233))) * 43758.5453); }
 float dither(vec2 uv) { return (rand(uv)*2.0-1.0) / 256.0; }
 
-vec3 objectColor = vec3(1);
+vec3 CalcReject(vec3 from, vec3 onto) {
+    return from - onto*dot(from, onto)/dot(onto, onto);
+}
+
 vec3 currentLightPos = vec3(0, 0, 0);
 vec3 result = vec3(0);
 
-float ambientStrenght = 0.1;
+float ambientStrenght = 0.0;
 vec3 ambientColor = vec3(1, 1, 1);
 
+vec3 diffuseColor = vec3(1);
+vec3 emissionColor = vec3(0.1);
 
-vec3 diffuseColor = vec3(1, 1, 1);
+float specularStrength = 2;
 
-float specularStrength = 0.5;
+vec3 lightColor = vec3(4);
 
-vec3 lightColor = vec3(1, 0, 0);
+//float constant = 0.1;
+//float linear = 0.009;
+float quadratic = 0.0032;
 
-float constant = 1.0;
-float linear = 0.0009;
-float quadratic = 0.00032;
+
+float ballRadius = 0.4;
+
+float CalcShadow(vec3 normal, vec3 viewDir, vec3 lightDir) {
+    
+    float x = length(normal);
+    
+    return 0.01;
+}
 
 
 vec3 CalcPointLight(PointLight pointLight, vec3 normal, vec3 fragPos, vec3 viewDir) {
@@ -66,21 +83,31 @@ vec3 CalcPointLight(PointLight pointLight, vec3 normal, vec3 fragPos, vec3 viewD
 
         // attuantion
         float distance = length(lightDir - fragPos);
-        float attenuation = constant / (1 + linear * distance + quadratic * (distance * distance));   
+        float attenuation =  1.0/ (pointLight.constant + pointLight.linear * distance + quadratic * (distance * distance));   
 
+        // shadow 
+
+        vec3 ballDir = normalize(ballPos - fragPos);
+
+        vec3 reject = CalcReject(ballDir, lightDir);
+
+        float shadeFactor = max(length(reject)-ballRadius, 0);
+//        float shadeFactor = 1.0;
         // combine shaders in result 
 
-        vec3 ambient = ambientStrenght * ambientColor;
-        vec3 diffuse = lightColor  * diff * diffuseColor;
-        vec3 specular = lightColor * spec * specularStrength; 
+        
+        vec3 diffuse = pointLight.lightColor  * diff * diffuseColor * shadeFactor;
+        vec3 specular = pointLight.lightColor * spec * specularStrength * shadeFactor; 
+//
+//        ambient  *= attenuation;
+//        diffuse  *= attenuation;
+//        specular *= attenuation;
 
-        ambient  *= attenuation;
-        diffuse  *= attenuation;
-        specular *= attenuation;
-
-        return (ambient + diffuse + specular);
+        return (diffuse + specular)*attenuation;
 
 }
+
+
 
 void main()
 {
@@ -99,6 +126,13 @@ void main()
         result += CalcPointLight(pointLights[i], normal, fragPos, viewDir);
 
     }
+
+    vec3 ambient = ambientStrenght * ambientColor;
+
+
+    result += ambient;
+//    result += emissionColor;
+    result += dither(textureCoordinates);
 
     color = vec4(result, 1.0);
 }

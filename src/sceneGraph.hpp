@@ -29,7 +29,16 @@ struct SceneNode {
 
         nodeType = GEOMETRY;
 
+		lightColor = glm::vec3(4);
+		constant = 1.0;
+		linear = 0.009;
+		quadratic = 0.0032;
 	}
+
+	glm::vec3 lightColor;
+	float constant;
+	float linear;
+	float quadratic;
 
 	// A list of all children that belong to this node.
 	// For instance, in case of the scene graph of a human body shown in the assignment text, the "Upper Torso" node would contain the "Left Arm", "Right Arm", "Head" and "Lower Torso" nodes in its list of children.
