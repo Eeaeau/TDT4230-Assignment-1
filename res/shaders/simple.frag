@@ -60,7 +60,7 @@ vec3 lightColor = vec3(4);
 float quadratic = 0.0032;
 
 
-float ballRadius = 1;
+float ballRadius = 1.5;
 
 float CalcShadow(vec3 normal, vec3 viewDir, vec3 lightDir) {
     
@@ -91,11 +91,15 @@ vec3 CalcPointLight(PointLight pointLight, vec3 normal, vec3 fragPos, vec3 viewD
         vec3 ballVec = ballPos - fragPos;
         vec3 ballDir = normalize(ballVec);
 
-        vec3 reject = CalcReject(ballVec, lightVec);
 //        vec3 reject = CalcReject(ballDir, lightDir);
+        
+        float shadeFactor = 1.0;
 
-        float shadeFactor = max(length(reject)-ballRadius, 0);
-        shadeFactor = min(shadeFactor, 1);
+        if (length(ballVec)<length(lightVec) && dot(lightVec, ballVec) >= 0) {
+            vec3 reject = CalcReject(ballVec, lightVec);
+            shadeFactor = max(length(reject)-ballRadius, 0);
+            shadeFactor = min(shadeFactor, 1);
+        }
 //        float shadeFactor = 1.0;
         // combine shaders in result 
 
