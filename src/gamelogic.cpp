@@ -39,6 +39,8 @@ SceneNode* ballNode;
 SceneNode* padNode;
 SceneNode* ballLightNode;
 SceneNode* staticLightNode;
+SceneNode* staticLightNode2;
+SceneNode* staticLightNode3;
 SceneNode* animatedLightNode;
 
 double ballRadius = 3.0f;
@@ -154,18 +156,34 @@ void initGame(GLFWwindow* window, CommandLineOptions gameOptions) {
     //    //node->nodeType = POINT_LIGHT;
     //}
 
-    ballLightNode = createSceneNode();
-    ballLightNode->nodeType = POINT_LIGHT;
-    ballLightNode->lightColor = glm::vec3(0, 0, 0);
+    //ballLightNode = createSceneNode();
+    //ballLightNode->nodeType = POINT_LIGHT;
+    //ballLightNode->lightColor = glm::vec3(0, 0, 8);
+    ////ballLightNode->lightColor = glm::vec3(8);
 
     staticLightNode = createSceneNode();
     staticLightNode->nodeType = POINT_LIGHT;
-    staticLightNode->lightColor = glm::vec3(10);
+    staticLightNode->lightColor = glm::vec3(8,0,0);
+    staticLightNode->position= glm::vec3(-5,0,0);
+    
+    staticLightNode2 = createSceneNode();
+    staticLightNode2->nodeType = POINT_LIGHT;
+    staticLightNode2->lightColor = glm::vec3(0,8,0);
+    staticLightNode2->position= glm::vec3(0,0,50);
+    //staticLightNode2->lightColor = glm::vec3(8);
+     
+    staticLightNode3 = createSceneNode();
+    staticLightNode3->nodeType = POINT_LIGHT;
+    staticLightNode3->lightColor = glm::vec3(0,0,8);
+    staticLightNode3->position = glm::vec3(5,0,0);
 
-    animatedLightNode = createSceneNode();
+
+
+    /*animatedLightNode = createSceneNode();
     animatedLightNode->nodeType = POINT_LIGHT;
     animatedLightNode->position = glm::vec3(0, 0, 1);
-    animatedLightNode->lightColor = glm::vec3(0, 0, 0);
+    animatedLightNode->lightColor = glm::vec3(5, 0, 0);*/
+    //animatedLightNode->lightColor = glm::vec3(8);
 
     // attatch to scene graph
     rootNode->children.push_back(boxNode);
@@ -174,9 +192,11 @@ void initGame(GLFWwindow* window, CommandLineOptions gameOptions) {
 
     rootNode->children.push_back(ballNode);
 
-    ballNode->children.push_back(ballLightNode);
+    //ballNode->children.push_back(ballLightNode);
     rootNode->children.push_back(staticLightNode);
-    padNode->children.push_back(animatedLightNode);
+    rootNode->children.push_back(staticLightNode2);
+    rootNode->children.push_back(staticLightNode3);
+    //padNode->children.push_back(animatedLightNode);
     
     //ballNode->children.push_back(lightSources[0]);
     //lightSources[0]->position = glm::vec3(0, 0, 2);

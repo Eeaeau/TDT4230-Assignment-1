@@ -4,9 +4,7 @@ in layout(location = 0) vec3 normal_in;
 in layout(location = 1) vec2 textureCoordinates;
 in layout(location = 4) vec3 fragPos;
 
-#define NR_POINT_LIGHTS 3  
-//layout(location = 6) in vec4 lightPos[NR_POINT_LIGHTS];
-
+#define NR_POINT_LIGHTS 3
 
 struct PointLight {    
     vec3 position;
@@ -15,11 +13,7 @@ struct PointLight {
 
     float constant;
     float linear;
-    float quadratic;  
-
-//    vec3 ambient;
-//    vec3 diffuse;
-//    vec3 specular;
+    float quadratic;
 };  
 
 uniform vec3 viewPos;
@@ -27,10 +21,6 @@ uniform vec3 ballPos;
 uniform vec3 lightTest;
 uniform PointLight pointLights[NR_POINT_LIGHTS];
 uniform mat3 normalMatrix;
-
-
-//in vec3 fragPos;
-in vec3 aTestVar;
 
 out vec4 color;
 
@@ -49,7 +39,7 @@ float ambientStrenght = 0.0;
 vec3 ambientColor = vec3(1, 1, 1);
 
 vec3 diffuseColor = vec3(1);
-vec3 emissionColor = vec3(0.1);
+vec3 emissionColor = vec3(0.0);
 
 float specularStrength = 2;
 
@@ -57,18 +47,11 @@ vec3 lightColor = vec3(4);
 
 //float constant = 0.1;
 //float linear = 0.009;
-float quadratic = 0.0032;
+float quadratic = 0.0032; // for some reason uniform did not work for this one
 
 
-float ballRadius = 1.5;
-
-float CalcShadow(vec3 normal, vec3 viewDir, vec3 lightDir) {
-    
-    float x = length(normal);
-    
-    return 0.1;
-}
-
+float ballBaseRadius = 1.6;
+float ballSoftRadius = ballBaseRadius*1.5;
 
 vec3 CalcPointLight(PointLight pointLight, vec3 normal, vec3 fragPos, vec3 viewDir) {
     
@@ -83,33 +66,37 @@ vec3 CalcPointLight(PointLight pointLight, vec3 normal, vec3 fragPos, vec3 viewD
         float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
 
         // attuantion
-        float distance = length(lightDir - fragPos);
-        float attenuation =  1.0/ (pointLight.constant + pointLight.linear * distance + quadratic * (distance * distance));   
+        float lightDist = distance(lightDir, fragPos);
+        float attenuation =  1.0/ (pointLight.constant + pointLight.linear * lightDist + quadratic * (lightDist * lightDist));   
 
         // shadow 
 
         vec3 ballVec = ballPos - fragPos;
-        vec3 ballDir = normalize(ballVec);
-
-//        vec3 reject = CalcReject(ballDir, lightDir);
+//        vec3 ballDir = normalize(ballVec);
         
         float shadeFactor = 1.0;
+        float shadeSoftFactor = 0.0;
 
-        if (length(ballVec)<length(lightVec) && dot(lightVec, ballVec) >= 0) {
+        if (length(ballVec)<length(lightVec) && dot(lightVec, ballVec) >= 0) { //branching not optimal for performance
             vec3 reject = CalcReject(ballVec, lightVec);
-            shadeFactor = max(length(reject)-ballRadius, 0);
+//            vec3 rejectDir = normalize(reject);
+            
+            shadeSoftFactor = max(length(reject)-ballSoftRadius, 0);
+            shadeSoftFactor = min(shadeSoftFactor, 1);
+            
+            shadeFactor = max(length(reject)-ballBaseRadius, 0);
             shadeFactor = min(shadeFactor, 1);
+
+            float mixFactor = abs(length(reject)-ballSoftRadius);
+            mixFactor = 1/(1+ 0.08*mixFactor*mixFactor);
+
+            shadeFactor *= mix(shadeFactor, shadeSoftFactor, mixFactor);
+
         }
-//        float shadeFactor = 1.0;
-        // combine shaders in result 
 
         
         vec3 diffuse = pointLight.lightColor  * diff * diffuseColor * shadeFactor;
         vec3 specular = pointLight.lightColor * spec * specularStrength * shadeFactor; 
-//
-//        ambient  *= attenuation;
-//        diffuse  *= attenuation;
-//        specular *= attenuation;
 
         return (diffuse + specular)*attenuation;
 
@@ -119,15 +106,9 @@ vec3 CalcPointLight(PointLight pointLight, vec3 normal, vec3 fragPos, vec3 viewD
 
 void main()
 {
-//    color =  normalize(vec4(1.0, 1.0, -1.0, 1.0)) * vec4(0.5 * normal_in + 0.5, 1.0);
-//    color =  vec4(0.5 * normal_in + 0.5, 1.0);
-//    color =  vec4(1.0,0.0,0.0, 1.0);
-
     vec3 normal = normalize(normal_in);
-//    vec3 normal = normalize(normalMatrix * normal_in);
 
     vec3 viewDir = normalize(viewPos - fragPos);
-//    vec3 result = vec3(0.2);
 
     for	(int i = 0; i < NR_POINT_LIGHTS; i++) {
 
@@ -137,9 +118,8 @@ void main()
 
     vec3 ambient = ambientStrenght * ambientColor;
 
-
     result += ambient;
-//    result += emissionColor;
+    result += emissionColor; 
     result += dither(textureCoordinates);
 
     color = vec4(result, 1.0);
