@@ -50,8 +50,8 @@ vec3 lightColor = vec3(4);
 float quadratic = 0.0032; // for some reason uniform did not work for this one
 
 
-float ballBaseRadius = 1.6;
-float ballSoftRadius = ballBaseRadius*1.5;
+float ballBaseRadius = 1;
+float ballSoftRadius = ballBaseRadius*2;
 
 vec3 CalcPointLight(PointLight pointLight, vec3 normal, vec3 fragPos, vec3 viewDir) {
     
@@ -88,7 +88,7 @@ vec3 CalcPointLight(PointLight pointLight, vec3 normal, vec3 fragPos, vec3 viewD
             shadeFactor = min(shadeFactor, 1);
 
             float mixFactor = abs(length(reject)-ballSoftRadius);
-            mixFactor = 1/(1+ 0.08*mixFactor*mixFactor);
+            mixFactor = 1/(1+ 1*mixFactor*mixFactor);
 
             shadeFactor *= mix(shadeFactor, shadeSoftFactor, mixFactor);
 
