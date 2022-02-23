@@ -419,7 +419,7 @@ void updateNodeTransformations(SceneNode* node, glm::mat4 transformationThusFar,
             * glm::translate(-node->referencePoint);
 
     node->modelMatrix = transformationMatrix; // M
-    node->modelMatrix = viewTransformation * transformationMatrix; // M
+    node->modelViewMatrix = viewTransformation * transformationMatrix; // M
     node->currentTransformationMatrix = transformationThusFar * transformationMatrix; // model view projection matrix
 
     switch(node->nodeType) {
