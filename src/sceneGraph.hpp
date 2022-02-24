@@ -14,7 +14,7 @@
 #include <fstream>
 
 enum SceneNodeType {
-	GEOMETRY, POINT_LIGHT, SPOT_LIGHT
+	GEOMETRY, PBR_GEOMETRY, SPRITE, POINT_LIGHT, SPOT_LIGHT
 };
 
 struct SceneNode {
@@ -65,6 +65,8 @@ struct SceneNode {
 	// The ID of the VAO containing the "appearance" of this SceneNode.
 	int vertexArrayObjectID;
 	unsigned int VAOIndexCount;
+	unsigned int colorTextureID;
+	unsigned int normalTextureID;
 
 	// The ID used for of lights 
 	unsigned lightID;

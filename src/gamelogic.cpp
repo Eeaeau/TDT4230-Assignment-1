@@ -42,6 +42,7 @@ SceneNode* staticLightNode;
 SceneNode* staticLightNode2;
 SceneNode* staticLightNode3;
 SceneNode* animatedLightNode;
+SceneNode* textureAtlasNode;
 
 double ballRadius = 3.0f;
 
@@ -145,6 +146,7 @@ void initGame(GLFWwindow* window, CommandLineOptions gameOptions) {
     boxNode  = createSceneNode();
     padNode  = createSceneNode();
     ballNode = createSceneNode();
+    textureAtlasNode = createSceneNode();
     
 
     /*for (int i = 0; i < 3; ++i) {
@@ -213,6 +215,19 @@ void initGame(GLFWwindow* window, CommandLineOptions gameOptions) {
     ballNode->vertexArrayObjectID = ballVAO;
     ballNode->VAOIndexCount       = sphere.indices.size();
 
+
+    // ------------------- textures ------------------- // 
+
+    auto textAtlas = loadPNGFile("../res/textures/charmap.png");
+
+    unsigned int textAtlasID = generateTexture(textAtlas);
+
+    auto textVAO = generateTextGeometryBuffer("test", 39/29, 100);
+
+    textureAtlasNode->colorTextureID = textAtlasID;
+    textureAtlasNode->nodeType = SPRITE;
+
+    rootNode->children.push_back(textureAtlasNode);
 
     getTimeDeltaSeconds();
 
