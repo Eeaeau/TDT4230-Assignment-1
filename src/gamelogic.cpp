@@ -30,12 +30,16 @@ enum KeyFrameAction {
 double padPositionX = 0;
 double padPositionZ = 0;
 
+float nearPlane = 0.1f;
+float farPlane = 350.f;
+
 unsigned int currentKeyFrame = 0;
 unsigned int previousKeyFrame = 0;
 
 SceneNode* rootNode;
 SceneNode* boxNode;
 SceneNode* ballNode;
+SceneNode* ball2Node;
 SceneNode* padNode;
 SceneNode* ballLightNode;
 SceneNode* staticLightNode;
@@ -49,6 +53,8 @@ double ballRadius = 3.0f;
 // These are heap allocated, because they should not be initialised at the start of the program
 sf::SoundBuffer* buffer;
 Gloom::Shader* shader;
+Gloom::Shader* overlayShader;
+;
 sf::Sound* sound;
 
 const glm::vec3 boxDimensions(180, 90, 90);
@@ -56,7 +62,9 @@ const glm::vec3 padDimensions(30, 3, 40);
 
 glm::vec3 ballPosition(0, ballRadius + padDimensions.y, boxDimensions.z / 2);
 glm::vec3 ballDirection(1, 1, 0.2f);
+glm::vec3 boxCenter(0, -10, -80);
 glm::vec3 cameraPosition;
+glm::mat4 orthoProject;
 
 CommandLineOptions options;
 
@@ -123,6 +131,12 @@ void initGame(GLFWwindow* window, CommandLineOptions gameOptions) {
 
     options = gameOptions;
 
+    int windowWidth, windowHeight;
+    glfwGetWindowSize(window, &windowWidth, &windowHeight);
+    
+    orthoProject = glm::ortho(0.0f, static_cast<float>(windowWidth), 0.0f, static_cast<float>(windowHeight), nearPlane, farPlane);
+    //orthoProject = glm::ortho(0.0f, 1.0f, 0.0f, 1.0f, nearPlane, farPlane);
+
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
     glfwSetCursorPosCallback(window, mouseCallback);
 
@@ -130,15 +144,22 @@ void initGame(GLFWwindow* window, CommandLineOptions gameOptions) {
     shader->makeBasicShader("../res/shaders/simple.vert", "../res/shaders/simple.frag");
     shader->activate();
 
+    overlayShader = new Gloom::Shader();
+    overlayShader->makeBasicShader("../res/shaders/overlay.vert", "../res/shaders/overlay.frag");
+
     // Create meshes
     Mesh pad = cube(padDimensions, glm::vec2(30, 40), true);
     Mesh box = cube(boxDimensions, glm::vec2(90), true, true);
     Mesh sphere = generateSphere(1.0, 40, 40);
+    Mesh sphere2 = generateSphere(1.0, 40, 40);
+    Mesh textMesh = generateTextGeometryBuffer("Click to begin!", 39 / 29, 0.5);
 
     // ------ Fill buffers ------ //
     unsigned int ballVAO = generateBuffer(sphere);
+    unsigned int ball2VAO = generateBuffer(sphere2);
     unsigned int boxVAO  = generateBuffer(box);
     unsigned int padVAO  = generateBuffer(pad);
+    unsigned int textVAO = generateBuffer(textMesh);
 
     // ------ Construct scene ------ //
     //create scene nodes 
@@ -146,8 +167,11 @@ void initGame(GLFWwindow* window, CommandLineOptions gameOptions) {
     boxNode  = createSceneNode();
     padNode  = createSceneNode();
     ballNode = createSceneNode();
+    ball2Node = createSceneNode();
+    ball2Node->position = boxCenter;
     textureAtlasNode = createSceneNode();
-    
+    //textureAtlasNode->position = glm::vec3(0, 0, -80);
+    textureAtlasNode->position = boxCenter;
 
     /*for (int i = 0; i < 3; ++i) {
         lightSources.push_back(createSceneNode());
@@ -193,7 +217,9 @@ void initGame(GLFWwindow* window, CommandLineOptions gameOptions) {
     rootNode->children.push_back(padNode);
 
     rootNode->children.push_back(ballNode);
+    //rootNode->children.push_back(ball2Node);
 
+    rootNode->children.push_back(textureAtlasNode);
     //ballNode->children.push_back(ballLightNode);
     rootNode->children.push_back(staticLightNode);
     rootNode->children.push_back(staticLightNode2);
@@ -213,21 +239,37 @@ void initGame(GLFWwindow* window, CommandLineOptions gameOptions) {
     padNode->VAOIndexCount        = pad.indices.size();
 
     ballNode->vertexArrayObjectID = ballVAO;
-    ballNode->VAOIndexCount       = sphere.indices.size();
+    ballNode->VAOIndexCount       = sphere.indices.size();    
+    
+    ball2Node->vertexArrayObjectID = ball2VAO;
+    ball2Node->VAOIndexCount       = sphere.indices.size();
 
+    textureAtlasNode->vertexArrayObjectID = textVAO;
+    textureAtlasNode->VAOIndexCount = textMesh.indices.size();
 
     // ------------------- textures ------------------- // 
 
+
+    auto brickDiffuse = loadPNGFile("../res/textures/Brick03_col.png");
+    unsigned int brickDiffuseID = generateTexture(brickDiffuse, false);
+    
+    auto brickNormal = loadPNGFile("../res/textures/Brick03_nrm.png");
+    unsigned int brickNormalID = generateTexture(brickNormal, false);
+
+    boxNode->nodeType = TEXTURED_GEOMETRY;
+    boxNode->diffuseTextureID = brickDiffuseID;
+    boxNode->normalTextureID = brickNormalID;
+
+    //padNode->nodeType = TEXTURED_GEOMETRY;
+    //padNode->diffuseTextureID = brickDiffuseID;
+    //padNode->normalTextureID= brickNormalID;
+
     auto textAtlas = loadPNGFile("../res/textures/charmap.png");
-
-    unsigned int textAtlasID = generateTexture(textAtlas);
-
-    auto textVAO = generateTextGeometryBuffer("test", 39/29, 100);
-
-    textureAtlasNode->colorTextureID = textAtlasID;
-    textureAtlasNode->nodeType = SPRITE;
-
-    rootNode->children.push_back(textureAtlasNode);
+    unsigned int textAtlasID = generateTexture(textAtlas, true);
+    
+    textureAtlasNode->diffuseTextureID = brickDiffuseID;
+    textureAtlasNode->normalTextureID = brickNormalID;
+    textureAtlasNode->nodeType = OVERLAY;
 
     getTimeDeltaSeconds();
 
@@ -392,7 +434,9 @@ void updateFrame(GLFWwindow* window) {
         }
     }
 
-    glm::mat4 projection = glm::perspective(glm::radians(80.0f), float(windowWidth) / float(windowHeight), 0.1f, 350.f);
+    glm::mat4 projection = glm::perspective(glm::radians(80.0f), float(windowWidth) / float(windowHeight), nearPlane, farPlane);
+
+    //orthoProject = glm::ortho(0.0f, static_cast<float>(windowWidth), 0.0f, static_cast<float>(windowHeight), nearPlane, farPlane);
 
     cameraPosition = glm::vec3(0, 2, -20);
 
@@ -434,7 +478,7 @@ void updateNodeTransformations(SceneNode* node, glm::mat4 transformationThusFar,
             * glm::translate(-node->referencePoint);
 
     node->modelMatrix = transformationMatrix; // M
-    node->modelViewMatrix = viewTransformation * transformationMatrix; // M
+    node->modelViewMatrix = viewTransformation * transformationMatrix; // MV
     node->currentTransformationMatrix = transformationThusFar * transformationMatrix; // model view projection matrix
 
     switch(node->nodeType) {
@@ -449,23 +493,83 @@ void updateNodeTransformations(SceneNode* node, glm::mat4 transformationThusFar,
 }
 
 void renderNode(SceneNode* node) {
-    //glUniformMatrix4fv(3, 1, GL_FALSE, glm::value_ptr(node->currentTransformationMatrix)); // MVP
+
+    auto screenPos = glm::vec3(node->modelMatrix * glm::vec4(0.0, 0.0, 0.0, 1.0));
+
+    
+    // Common uniforms for phong shader 
+    shader->activate();
     glUniformMatrix4fv(shader->getUniformFromName("MVP"), 1, GL_FALSE, glm::value_ptr(node->currentTransformationMatrix)); // MVP
+
     glUniformMatrix4fv(shader->getUniformFromName("modelViewMatrix"), 1, GL_FALSE, glm::value_ptr(node->modelViewMatrix));
+
+    glUniform3fv(shader->getUniformFromName("textPos"), 1, glm::value_ptr(screenPos));
+
     glUniformMatrix4fv(shader->getUniformFromName("modelMatrix"), 1, GL_FALSE, glm::value_ptr(node->modelMatrix));
 
     glm::mat3 normalMatrix = glm::mat3(glm::transpose(glm::inverse(node->modelMatrix)));
     glUniformMatrix3fv(shader->getUniformFromName("normalMatrix"), 1, GL_FALSE, glm::value_ptr(normalMatrix));
 
+
+    glUniform1i(shader->getUniformFromName("useTexture"), 0);
+
     std::string number = std::to_string(NumLightProcessed);
+    std::string numSprite = std::to_string(0);
+    std::string numPBR = std::to_string(0);
     switch(node->nodeType) {
         case GEOMETRY:
+            shader->activate();
             if(node->vertexArrayObjectID != -1) {
                 glBindVertexArray(node->vertexArrayObjectID);
                 glDrawElements(GL_TRIANGLES, node->VAOIndexCount, GL_UNSIGNED_INT, nullptr);
             }
             break;
+        case TEXTURED_GEOMETRY:
+            shader->activate();
+            glUniform1i(shader->getUniformFromName("useTexture"), 1);
+            glBindTextureUnit(shader->getUniformFromName("texture_in.diffuse"), node->diffuseTextureID);
+            glBindTextureUnit(shader->getUniformFromName("texture_in.normal"), node->normalTextureID);
+            //glBindTextureUnit(shader->getUniformFromName(("texture[" + numPBR + "].normal").c_str()), node->normalTextureID);
+
+            if(node->vertexArrayObjectID != -1) {
+                glBindVertexArray(node->vertexArrayObjectID);
+                glDrawElements(GL_TRIANGLES, node->VAOIndexCount, GL_UNSIGNED_INT, nullptr);
+            }
+            break;
+        case SPRITE: 
+            if (node->vertexArrayObjectID != -1) {
+                glBindVertexArray(node->vertexArrayObjectID);
+                glDrawElements(GL_TRIANGLES, node->VAOIndexCount, GL_UNSIGNED_INT, nullptr);
+            }
+            //auto pos = (node->currentTransformationMatrix * glm::vec4(0.0, 0.0, 0.0, 1.0));
+            //glUniform3fv(shader->getUniformFromName(("textSprite[" + numSprite + "].position").c_str()), 1, glm::value_ptr(glm::vec3(pos.x, pos.y, pos.z)));
+            break;
+        case OVERLAY: 
+            overlayShader->activate();
+            // Common uniforms for overlay shader 
+            //glBindTextureUnit(overlayShader->getUniformFromName(("textSprite[" + numSprite + "].position").c_str()), textureID);
+            glBindTextureUnit(overlayShader->getUniformFromName(("atlas.color")), node->diffuseTextureID);
+
+            glUniformMatrix4fv(overlayShader->getUniformFromName("modelMatrix"), 1, GL_FALSE, glm::value_ptr(node->modelMatrix));
+            glUniformMatrix4fv(overlayShader->getUniformFromName("modelViewMatrix"), 1, GL_FALSE, glm::value_ptr(node->modelViewMatrix));
+            glUniformMatrix4fv(overlayShader->getUniformFromName("orthoMatrix"), 1, GL_FALSE, glm::value_ptr(orthoProject));
+    
+            glm::mat4 customMatrix(1.0f);
+            //customMatrix = customMatrix * glm::translate(glm::vec3(0,0,0));
+            glUniformMatrix4fv(overlayShader->getUniformFromName("customMatrix"), 1, GL_FALSE, glm::value_ptr(customMatrix));
+
+
+            if (node->vertexArrayObjectID != -1) {
+                glBindVertexArray(node->vertexArrayObjectID);
+                glDrawElements(GL_TRIANGLES, node->VAOIndexCount, GL_UNSIGNED_INT, nullptr);
+            }
+
+
+            //auto pos = (node->currentTransformationMatrix * glm::vec4(0.0, 0.0, 0.0, 1.0));
+
+            break;
         case POINT_LIGHT: 
+            shader->activate();
             //glUniform1ui(7, lightSources.size());
             auto pos = (node->currentTransformationMatrix * glm::vec4(0.0, 0.0, 0.0, 1.0));
             glUniform3fv(shader->getUniformFromName(("pointLights["+ number +"].position").c_str()), 1, glm::value_ptr(glm::vec3(pos.x, pos.y, pos.z)));
@@ -476,7 +580,6 @@ void renderNode(SceneNode* node) {
             glUniform1f(shader->getUniformFromName(("pointLight[" + number + "].linear").c_str()), node->linear);
             glUniform1f(shader->getUniformFromName(("pointLight[" + number + "].quadratic").c_str()), 0.0f);
             NumLightProcessed++;
-            
             break;
         case SPOT_LIGHT: break;
     }
@@ -488,6 +591,7 @@ void renderNode(SceneNode* node) {
 
 void renderFrame(GLFWwindow* window) {
     glUniform3fv(shader->getUniformFromName("viewPos"), 1, glm::value_ptr(cameraPosition));
+    glUniform3fv(overlayShader->getUniformFromName("viewPos"), 1, glm::value_ptr(cameraPosition));
     glUniform3fv(shader->getUniformFromName("lightTest"), 1, glm::value_ptr(glm::vec3(1, 0, 0)));
 
     auto ballPos = glm::vec3(ballNode->modelMatrix * glm::vec4(0.0, 0.0, 0.0, 1.0));

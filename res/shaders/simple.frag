@@ -5,6 +5,7 @@ in layout(location = 1) vec2 textureCoordinates;
 in layout(location = 4) vec3 fragPos;
 
 #define NR_POINT_LIGHTS 3
+#define NR_TEXTURES 1
 
 struct PointLight {    
     vec3 position;
@@ -16,11 +17,19 @@ struct PointLight {
     float quadratic;
 };  
 
+struct Texture {
+    sampler2D diffuse;
+    sampler2D normal;
+};  
+
+uniform Texture texture_in;
+
 uniform vec3 viewPos;
 uniform vec3 ballPos;
 uniform vec3 lightTest;
 uniform PointLight pointLights[NR_POINT_LIGHTS];
 uniform mat3 normalMatrix;
+uniform int useTexture;
 
 out vec4 color;
 
@@ -41,7 +50,7 @@ vec3 ambientColor = vec3(1, 1, 1);
 vec3 diffuseColor = vec3(1);
 vec3 emissionColor = vec3(0.0);
 
-float specularStrength = 2;
+float specularStrength = 1;
 
 vec3 lightColor = vec3(4);
 
@@ -110,6 +119,11 @@ void main()
 
     vec3 viewDir = normalize(viewPos - fragPos);
 
+    if (useTexture == 1) {
+            diffuseColor = texture(texture_in.normal, textureCoordinates).rgb;
+//            normal = texture(texture_in.normal, textureCoordinates).rgb;
+    }
+
     for	(int i = 0; i < NR_POINT_LIGHTS; i++) {
 
         result += CalcPointLight(pointLights[i], normal, fragPos, viewDir);
@@ -123,4 +137,7 @@ void main()
     result += dither(textureCoordinates);
 
     color = vec4(result, 1.0);
+//    color = texture(texture_in.normal, textureCoordinates);
+//    color = vec4(textureCoordinates, 0, 1.0);
+//    color = vec4(textureCoordinates, 0, 1.0);
 }

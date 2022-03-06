@@ -14,7 +14,7 @@
 #include <fstream>
 
 enum SceneNodeType {
-	GEOMETRY, PBR_GEOMETRY, SPRITE, POINT_LIGHT, SPOT_LIGHT
+	GEOMETRY, TEXTURED_GEOMETRY, OVERLAY, SPRITE, POINT_LIGHT, SPOT_LIGHT
 };
 
 struct SceneNode {
@@ -24,7 +24,11 @@ struct SceneNode {
 		scale = glm::vec3(1, 1, 1);
 
         referencePoint = glm::vec3(0, 0, 0);
+
         vertexArrayObjectID = -1;
+		diffuseTextureID = -1;
+		normalTextureID = -1;
+
         VAOIndexCount = 0;
 
         nodeType = GEOMETRY;
@@ -49,6 +53,9 @@ struct SceneNode {
 	glm::vec3 rotation;
 	glm::vec3 scale;
 
+	PNGImage diffuseTexture;
+	PNGImage normalTexture;
+
 	// The Model matrix for preserving angles is needed
 	glm::mat4 modelMatrix;
 	glm::mat4 modelViewMatrix;
@@ -65,7 +72,7 @@ struct SceneNode {
 	// The ID of the VAO containing the "appearance" of this SceneNode.
 	int vertexArrayObjectID;
 	unsigned int VAOIndexCount;
-	unsigned int colorTextureID;
+	unsigned int diffuseTextureID;
 	unsigned int normalTextureID;
 
 	// The ID used for of lights 

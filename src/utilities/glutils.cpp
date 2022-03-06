@@ -33,23 +33,41 @@ unsigned int generateBuffer(Mesh &mesh) {
     return vaoID;
 }
 
-unsigned int generateTexture(PNGImage &image) {
+unsigned int generateTexture(PNGImage image, bool useAlpha) {
     
     unsigned int textureID;
-    unsigned char* data = image.pixels.data();
-
 
     glGenTextures(1, &textureID);
 
     glBindTexture(GL_TEXTURE_2D, textureID);
 
-    auto width = image.width;
-    auto height = image.height;
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-    glGenerateMipmap(GL_TEXTURE_2D);
+    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    //std::unique_ptr<unsigned char*>  data = image.pixels.data();
+    unsigned char* data = image.pixels.data();
+
+    auto width = image.width;
+    auto height = image.height;
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    glGenerateMipmap(GL_TEXTURE_2D);   
+  /*  if (data) {
+        if (useAlpha) {
+        }
+        else {
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        }
+    }
+    else
+    {
+        std::cout << "Failed to load texture" << std::endl;
+    }*/
+
+    //std::free(data);
 
     return textureID;
 }
