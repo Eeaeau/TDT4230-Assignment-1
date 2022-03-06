@@ -22,7 +22,12 @@ struct Texture {
     sampler2D normal;
 };  
 
-uniform Texture texture_in;
+//uniform Texture texture_in;
+
+//in layout(location = 6) uniform Texture texture_in;
+
+layout(binding = 1) uniform sampler2D diffuseTexture;
+layout(binding = 2) uniform sampler2D normalTexture;
 
 uniform vec3 viewPos;
 uniform vec3 ballPos;
@@ -119,10 +124,6 @@ void main()
 
     vec3 viewDir = normalize(viewPos - fragPos);
 
-    if (useTexture == 1) {
-            diffuseColor = texture(texture_in.diffuse, textureCoordinates).rgb;
-            normal = texture(texture_in.normal, textureCoordinates).rgb;
-    }
 
     for	(int i = 0; i < NR_POINT_LIGHTS; i++) {
 
@@ -136,7 +137,14 @@ void main()
     result += emissionColor; 
     result += dither(textureCoordinates);
 
+    
     color = vec4(result, 1.0);
+
+    if (useTexture == 1) {
+            normal = normalize(texture(normalTexture, textureCoordinates).rgb * 2 - 1);
+            diffuseColor = texture(diffuseTexture, textureCoordinates).rgb;
+            color = vec4(normal, 1.0);
+    }
 //    color = texture(texture_in.normal, textureCoordinates);
 //    color = vec4(textureCoordinates, 0, 1.0);
 //    color = vec4(textureCoordinates, 0, 1.0);

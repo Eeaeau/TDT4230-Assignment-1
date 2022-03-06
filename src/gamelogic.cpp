@@ -189,18 +189,18 @@ void initGame(GLFWwindow* window, CommandLineOptions gameOptions) {
 
     staticLightNode = createSceneNode();
     staticLightNode->nodeType = POINT_LIGHT;
-    staticLightNode->lightColor = glm::vec3(8,0,0);
+    staticLightNode->lightColor = glm::vec3(16,0,0);
     staticLightNode->position= glm::vec3(-5,0,0);
     
     staticLightNode2 = createSceneNode();
     staticLightNode2->nodeType = POINT_LIGHT;
-    staticLightNode2->lightColor = glm::vec3(0,8,0);
+    staticLightNode2->lightColor = glm::vec3(0,16,0);
     staticLightNode2->position= glm::vec3(0,0,50);
     //staticLightNode2->lightColor = glm::vec3(8);
      
     staticLightNode3 = createSceneNode();
     staticLightNode3->nodeType = POINT_LIGHT;
-    staticLightNode3->lightColor = glm::vec3(0,0,8);
+    staticLightNode3->lightColor = glm::vec3(0,0,16);
     staticLightNode3->position = glm::vec3(5,0,0);
 
 
@@ -521,16 +521,14 @@ void renderNode(SceneNode* node) {
     glUniform1i(shader->getUniformFromName("useTexture"), 0);
 
     
-
-
     //unsigned int diffuseTextureID = generateTexture(node->normalTexture, false);
-    ////node->normalTextureID = diffuseTextureID;
+    //node->normalTextureID = diffuseTextureID;
     //unsigned int normalTextureID = generateTexture(node->diffuseTexture, false);
-    ////node->diffuseTextureID = normalTextureID;
+    //node->diffuseTextureID = normalTextureID;
 
     std::string number = std::to_string(NumLightProcessed);
     std::string numSprite = std::to_string(0);
-    std::string numPBR = std::to_string(0);
+    //std::string numPBR = std::to_string(0);
     switch(node->nodeType) {
         case GEOMETRY:
             shader->activate();
@@ -539,11 +537,27 @@ void renderNode(SceneNode* node) {
                 glDrawElements(GL_TRIANGLES, node->VAOIndexCount, GL_UNSIGNED_INT, nullptr);
             }
             break;
+        case TEXTURED_GEOMETRY:
+            shader->activate();
+
+            glUniform1i(shader->getUniformFromName("useTexture"), 1);
+            glBindTextureUnit(1, node->diffuseTextureID);
+            glBindTextureUnit(2, node->normalTextureID);
+            
+        /*    glBindTextureUnit(shader->getUniformFromName("texture_in.diffuse"), node->diffuseTextureID);
+            glBindTextureUnit(shader->getUniformFromName("texture_in.normal"), node->normalTextureID);*/
+
+            if (node->vertexArrayObjectID != -1) {
+                glBindVertexArray(node->vertexArrayObjectID);
+                glDrawElements(GL_TRIANGLES, node->VAOIndexCount, GL_UNSIGNED_INT, nullptr);
+            }
+            break;
         case OVERLAY: 
             overlayShader->activate();
             // Common uniforms for overlay shader 
             //glBindTextureUnit(overlayShader->getUniformFromName(("textSprite[" + numSprite + "].position").c_str()), textureID);
-            glBindTextureUnit(overlayShader->getUniformFromName(("atlas.color")), node->diffuseTextureID);
+            glBindTextureUnit(3, node->diffuseTextureID);
+            //glBindTextureUnit(overlayShader->getUniformFromName("atlas.color"), node->diffuseTextureID);
 
             glUniformMatrix4fv(overlayShader->getUniformFromName("modelMatrix"), 1, GL_FALSE, glm::value_ptr(node->modelMatrix));
             glUniformMatrix4fv(overlayShader->getUniformFromName("modelViewMatrix"), 1, GL_FALSE, glm::value_ptr(node->modelViewMatrix));
@@ -562,20 +576,6 @@ void renderNode(SceneNode* node) {
 
             //auto pos = (node->currentTransformationMatrix * glm::vec4(0.0, 0.0, 0.0, 1.0));
 
-            break;
-        case TEXTURED_GEOMETRY:
-            shader->activate();
-
-            glUniform1i(shader->getUniformFromName("useTexture"), 1);
-            glBindTextureUnit(shader->getUniformFromName("texture_in.diffuse"), node->diffuseTextureID);
-            glBindTextureUnit(shader->getUniformFromName("texture_in.normal"), node->normalTextureID);
-
-            //glBindTextureUnit(shader->getUniformFromName(("texture[" + numPBR + "].normal").c_str()), node->normalTextureID);
-
-            if(node->vertexArrayObjectID != -1) {
-                glBindVertexArray(node->vertexArrayObjectID);
-                glDrawElements(GL_TRIANGLES, node->VAOIndexCount, GL_UNSIGNED_INT, nullptr);
-            }
             break;
         case SPRITE: 
             if (node->vertexArrayObjectID != -1) {

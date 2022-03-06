@@ -33,7 +33,7 @@ unsigned int generateBuffer(Mesh &mesh) {
     return vaoID;
 }
 
-unsigned int generateTexture(PNGImage image, bool useAlpha) {
+unsigned int generateTexture(PNGImage &image, bool useAlpha) {
     
     unsigned int textureID;
 
@@ -54,7 +54,7 @@ unsigned int generateTexture(PNGImage image, bool useAlpha) {
     auto height = image.height;
 
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-    glGenerateMipmap(GL_TEXTURE_2D);   
+    glGenerateMipmap(GL_TEXTURE_2D);
   /*  if (data) {
         if (useAlpha) {
         }
