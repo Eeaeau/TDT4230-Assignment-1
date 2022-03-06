@@ -120,8 +120,8 @@ void main()
     vec3 viewDir = normalize(viewPos - fragPos);
 
     if (useTexture == 1) {
-            diffuseColor = texture(texture_in.normal, textureCoordinates).rgb;
-//            normal = texture(texture_in.normal, textureCoordinates).rgb;
+            diffuseColor = texture(texture_in.diffuse, textureCoordinates).rgb;
+            normal = texture(texture_in.normal, textureCoordinates).rgb;
     }
 
     for	(int i = 0; i < NR_POINT_LIGHTS; i++) {

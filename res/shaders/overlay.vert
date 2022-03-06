@@ -18,7 +18,7 @@ in layout(location = 2) vec2 textureCoordinates_in;
 //
 out layout(location = 0) vec3 normal_out;
 out layout(location = 1) vec2 textureCoordinates_out;
-out layout(location = 4) vec3 pos;
+//out layout(location = 4) vec3 pos;
 // out layout(location = 7) vec3 lightPos_out;
 //out vec3 fragPos;
 //out vec3 aTestVar;
@@ -38,7 +38,7 @@ void main()
 	normal_out = normal_in;
 
     textureCoordinates_out = textureCoordinates_in;
-    pos = position;
+//    pos = position;
 //    gl_Position = MVP * vec4(position, 1.0f);
     gl_Position =  vec4(position[0], position[1], position[2], 1.0f);
     

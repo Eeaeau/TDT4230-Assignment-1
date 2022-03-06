@@ -249,27 +249,34 @@ void initGame(GLFWwindow* window, CommandLineOptions gameOptions) {
 
     // ------------------- textures ------------------- // 
 
-
-    auto brickDiffuse = loadPNGFile("../res/textures/Brick03_col.png");
-    unsigned int brickDiffuseID = generateTexture(brickDiffuse, false);
-    
-    auto brickNormal = loadPNGFile("../res/textures/Brick03_nrm.png");
-    unsigned int brickNormalID = generateTexture(brickNormal, false);
+    textureAtlasNode->nodeType = OVERLAY;
+    textureAtlasNode->diffuseTexture = loadPNGFile("../res/textures/charmap.png");
+    unsigned int atlasNormalID = generateTexture(textureAtlasNode->diffuseTexture, false);
+    textureAtlasNode->diffuseTextureID = atlasNormalID;
 
     boxNode->nodeType = TEXTURED_GEOMETRY;
-    boxNode->diffuseTextureID = brickDiffuseID;
-    boxNode->normalTextureID = brickNormalID;
+    boxNode->diffuseTexture= loadPNGFile("../res/textures/Brick03_col.png");
+    boxNode->normalTexture = loadPNGFile("../res/textures/Brick03_nrm.png");
 
+    //boxNode->diffuseTexture = brickDiffuse;
+    //boxNode->normalTexture = brickNormal;
+
+    unsigned int brickDiffuseID = generateTexture(boxNode->diffuseTexture, false);
+    boxNode->diffuseTextureID = brickDiffuseID;
+    unsigned int brickNormalID = generateTexture(boxNode->normalTexture, false);
+    boxNode->normalTextureID = brickNormalID;
+    
+    
     //padNode->nodeType = TEXTURED_GEOMETRY;
     //padNode->diffuseTextureID = brickDiffuseID;
     //padNode->normalTextureID= brickNormalID;
 
-    auto textAtlas = loadPNGFile("../res/textures/charmap.png");
-    unsigned int textAtlasID = generateTexture(textAtlas, true);
-    
-    textureAtlasNode->diffuseTextureID = brickDiffuseID;
-    textureAtlasNode->normalTextureID = brickNormalID;
-    textureAtlasNode->nodeType = OVERLAY;
+    //auto textAtlas = loadPNGFile("../res/textures/charmap.png");
+    //unsigned int textAtlasID = generateTexture(textAtlas, true);
+
+
+    //textureAtlasNode->diffuseTextureID = textAtlasID;
+    //textureAtlasNode->normalTextureID = brickNormalID;
 
     getTimeDeltaSeconds();
 
@@ -513,6 +520,14 @@ void renderNode(SceneNode* node) {
 
     glUniform1i(shader->getUniformFromName("useTexture"), 0);
 
+    
+
+
+    //unsigned int diffuseTextureID = generateTexture(node->normalTexture, false);
+    ////node->normalTextureID = diffuseTextureID;
+    //unsigned int normalTextureID = generateTexture(node->diffuseTexture, false);
+    ////node->diffuseTextureID = normalTextureID;
+
     std::string number = std::to_string(NumLightProcessed);
     std::string numSprite = std::to_string(0);
     std::string numPBR = std::to_string(0);
@@ -523,26 +538,6 @@ void renderNode(SceneNode* node) {
                 glBindVertexArray(node->vertexArrayObjectID);
                 glDrawElements(GL_TRIANGLES, node->VAOIndexCount, GL_UNSIGNED_INT, nullptr);
             }
-            break;
-        case TEXTURED_GEOMETRY:
-            shader->activate();
-            glUniform1i(shader->getUniformFromName("useTexture"), 1);
-            glBindTextureUnit(shader->getUniformFromName("texture_in.diffuse"), node->diffuseTextureID);
-            glBindTextureUnit(shader->getUniformFromName("texture_in.normal"), node->normalTextureID);
-            //glBindTextureUnit(shader->getUniformFromName(("texture[" + numPBR + "].normal").c_str()), node->normalTextureID);
-
-            if(node->vertexArrayObjectID != -1) {
-                glBindVertexArray(node->vertexArrayObjectID);
-                glDrawElements(GL_TRIANGLES, node->VAOIndexCount, GL_UNSIGNED_INT, nullptr);
-            }
-            break;
-        case SPRITE: 
-            if (node->vertexArrayObjectID != -1) {
-                glBindVertexArray(node->vertexArrayObjectID);
-                glDrawElements(GL_TRIANGLES, node->VAOIndexCount, GL_UNSIGNED_INT, nullptr);
-            }
-            //auto pos = (node->currentTransformationMatrix * glm::vec4(0.0, 0.0, 0.0, 1.0));
-            //glUniform3fv(shader->getUniformFromName(("textSprite[" + numSprite + "].position").c_str()), 1, glm::value_ptr(glm::vec3(pos.x, pos.y, pos.z)));
             break;
         case OVERLAY: 
             overlayShader->activate();
@@ -568,6 +563,28 @@ void renderNode(SceneNode* node) {
             //auto pos = (node->currentTransformationMatrix * glm::vec4(0.0, 0.0, 0.0, 1.0));
 
             break;
+        case TEXTURED_GEOMETRY:
+            shader->activate();
+
+            glUniform1i(shader->getUniformFromName("useTexture"), 1);
+            glBindTextureUnit(shader->getUniformFromName("texture_in.diffuse"), node->diffuseTextureID);
+            glBindTextureUnit(shader->getUniformFromName("texture_in.normal"), node->normalTextureID);
+
+            //glBindTextureUnit(shader->getUniformFromName(("texture[" + numPBR + "].normal").c_str()), node->normalTextureID);
+
+            if(node->vertexArrayObjectID != -1) {
+                glBindVertexArray(node->vertexArrayObjectID);
+                glDrawElements(GL_TRIANGLES, node->VAOIndexCount, GL_UNSIGNED_INT, nullptr);
+            }
+            break;
+        case SPRITE: 
+            if (node->vertexArrayObjectID != -1) {
+                glBindVertexArray(node->vertexArrayObjectID);
+                glDrawElements(GL_TRIANGLES, node->VAOIndexCount, GL_UNSIGNED_INT, nullptr);
+            }
+            //auto pos = (node->currentTransformationMatrix * glm::vec4(0.0, 0.0, 0.0, 1.0));
+            //glUniform3fv(shader->getUniformFromName(("textSprite[" + numSprite + "].position").c_str()), 1, glm::value_ptr(glm::vec3(pos.x, pos.y, pos.z)));
+            break;
         case POINT_LIGHT: 
             shader->activate();
             //glUniform1ui(7, lightSources.size());
@@ -590,6 +607,15 @@ void renderNode(SceneNode* node) {
 }
 
 void renderFrame(GLFWwindow* window) {
+
+    //unsigned int diffuseTextureID = generateTexture(boxNode->normalTexture, false);
+    //boxNode->normalTextureID = diffuseTextureID;
+    //unsigned int normalTextureID = generateTexture(boxNode->diffuseTexture, false);
+    //boxNode->diffuseTextureID = normalTextureID;
+    //
+    //unsigned int atlasNormalID = generateTexture(textureAtlasNode->diffuseTexture, false);
+    //textureAtlasNode->diffuseTextureID = atlasNormalID;
+
     glUniform3fv(shader->getUniformFromName("viewPos"), 1, glm::value_ptr(cameraPosition));
     glUniform3fv(overlayShader->getUniformFromName("viewPos"), 1, glm::value_ptr(cameraPosition));
     glUniform3fv(shader->getUniformFromName("lightTest"), 1, glm::value_ptr(glm::vec3(1, 0, 0)));

@@ -1,6 +1,7 @@
 #include "sceneGraph.hpp"
 #include <iostream>
 
+
 SceneNode* createSceneNode() {
 	return new SceneNode();
 }

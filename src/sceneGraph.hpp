@@ -4,6 +4,8 @@
 #include <glm/mat4x4.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include <utilities/glutils.h>
+
 #include <stack>
 #include <vector>
 #include <cstdio>
@@ -37,6 +39,10 @@ struct SceneNode {
 		constant = 1.0;
 		linear = 0.009;
 		quadratic = 0.0032;
+
+
+		//diffuseTexture = loadPNGFile("../res/textures/normal-map-debug.png");
+		//normalTexture = loadPNGFile("../res/textures/normal-map-debug.png");
 	}
 
 	glm::vec3 lightColor;
