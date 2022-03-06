@@ -20,12 +20,14 @@ unsigned int generateBuffer(Mesh &mesh) {
     glBindVertexArray(vaoID);
 
     generateAttribute(0, 3, mesh.vertices, false);
-    generateAttribute(2, 3, mesh.normals, true);
-    //generateAttribute(3, 3, mesh.tangents, true);
+    generateAttribute(1, 3, mesh.normals, true);
 
     if (mesh.textureCoordinates.size() > 0) {
         generateAttribute(2, 2, mesh.textureCoordinates, false);
     }
+
+    generateAttribute(3, 3, mesh.tangents, true);
+    generateAttribute(4, 3, mesh.bitangents, true);
 
     unsigned int indexBufferID;
     glGenBuffers(1, &indexBufferID);

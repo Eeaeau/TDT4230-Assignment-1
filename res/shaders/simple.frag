@@ -3,8 +3,8 @@
 in layout(location = 0) vec3 normal_in;
 in layout(location = 1) vec2 textureCoordinates;
 in layout(location = 4) vec3 fragPos;
-//in layout(location = 5) mat3 TNB;
-//in layout(location = 9) vec3 tangent_in;
+in layout(location = 5) mat3 TBN;
+in layout(location = 9) vec3 tangent_in;
 
 #define NR_POINT_LIGHTS 3
 #define NR_TEXTURES 1
@@ -126,6 +126,12 @@ void main()
 
     vec3 viewDir = normalize(viewPos - fragPos);
 
+    if (useTexture == 1) {
+            normal = texture(normalTexture, textureCoordinates).rgb * 2 - 1;
+            diffuseColor = texture(diffuseTexture, textureCoordinates).rgb;
+            normal = normalize(TBN * normal);
+//            color = vec4(normal, 1.0);
+    }
 
     for	(int i = 0; i < NR_POINT_LIGHTS; i++) {
 
@@ -142,11 +148,12 @@ void main()
     
     color = vec4(result, 1.0);
 
-    if (useTexture == 1) {
-            normal = normalize(texture(normalTexture, textureCoordinates).rgb * 2 - 1);
-            diffuseColor = texture(diffuseTexture, textureCoordinates).rgb;
-            color = vec4(normal, 1.0);
-    }
+//    if (useTexture == 1) {
+//            normal = texture(normalTexture, textureCoordinates).rgb * 2 - 1;
+//            diffuseColor = texture(diffuseTexture, textureCoordinates).rgb;
+//            normal = normalize(TBN * normal);
+//            color = vec4(normal, 1.0);
+//    }
 //    color = texture(texture_in.normal, textureCoordinates);
 //    color = vec4(textureCoordinates, 0, 1.0);
 //    color = vec4(textureCoordinates, 0, 1.0);

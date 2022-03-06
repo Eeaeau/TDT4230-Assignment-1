@@ -5,12 +5,14 @@
 #define M_PI 3.14159265359f
 #endif
 
-std::vector<glm::vec3> computeTangentBasis(// inputs
+void computeTangentBasis(// inputs
     std::vector<glm::vec3>& vertices,
     std::vector<glm::vec2>& uvs,
-    std::vector<glm::vec3>& normals) {
+    std::vector<glm::vec3>& normals, // out 
+    std::vector<glm::vec3> &tangents,
+    std::vector<glm::vec3> & bitangents) {
 
-    std::vector<glm::vec3> tangents;
+    
 
     for (int i = 0; i < vertices.size(); i += 3) {
 
@@ -34,7 +36,7 @@ std::vector<glm::vec3> computeTangentBasis(// inputs
 
         float r = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV1.y * deltaUV2.x);
         glm::vec3 tangent = (deltaPos1 * deltaUV2.y - deltaPos2 * deltaUV1.y) * r;
-        //glm::vec3 bitangent = (deltaPos2 * deltaUV1.x - deltaPos1 * deltaUV2.x) * r;
+        glm::vec3 bitangent = (deltaPos2 * deltaUV1.x - deltaPos1 * deltaUV2.x) * r;
 
         // Set the same tangent for all three vertices of the triangle.
        // They will be merged later, in vboindexer.cpp
@@ -43,13 +45,13 @@ std::vector<glm::vec3> computeTangentBasis(// inputs
         tangents.push_back(tangent);
 
         //// Same thing for bitangents
-        //bitangents.push_back(bitangent);
-        //bitangents.push_back(bitangent);
-        //bitangents.push_back(bitangent);
+        bitangents.push_back(bitangent);
+        bitangents.push_back(bitangent);
+        bitangents.push_back(bitangent);
 
     }
 
-    return tangents;
+    //return tangents;
 
 }
 
@@ -135,7 +137,7 @@ Mesh cube(glm::vec3 scale, glm::vec2 textureScale, bool tilingTextures, bool inv
         }
     }
 
-    m.tangents = computeTangentBasis(m.vertices, m.textureCoordinates, m.normals);
+    computeTangentBasis(m.vertices, m.textureCoordinates, m.normals, m.tangents, m.bitangents);
 
     return m;
 }
@@ -253,5 +255,7 @@ Mesh generateSphere(float sphereRadius, int slices, int layers) {
     mesh.normals = normals;
     mesh.indices = indices;
     mesh.textureCoordinates = uvs;
+    computeTangentBasis(vertices, uvs, normals, mesh.tangents, mesh.bitangents);
+    //mesh.tangents = computeTangentBasis(vertices, uvs, normals);
     return mesh;
 }
