@@ -3,6 +3,8 @@
 in layout(location = 0) vec3 normal_in;
 in layout(location = 1) vec2 textureCoordinates;
 in layout(location = 4) vec3 fragPos;
+//in layout(location = 5) mat3 TNB;
+//in layout(location = 9) vec3 tangent_in;
 
 #define NR_POINT_LIGHTS 3
 #define NR_TEXTURES 1
@@ -26,7 +28,7 @@ struct Texture {
 
 //in layout(location = 6) uniform Texture texture_in;
 
-layout(binding = 1) uniform sampler2D diffuseTexture;
+layout(binding = 1) uniform sampler2D diffuseTexture; // was not happy using implicit uniform
 layout(binding = 2) uniform sampler2D normalTexture;
 
 uniform vec3 viewPos;
