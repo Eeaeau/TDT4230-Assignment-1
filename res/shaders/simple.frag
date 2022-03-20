@@ -6,7 +6,7 @@ in layout(location = 4) vec3 fragPos;
 in layout(location = 5) mat3 TBN;
 in layout(location = 9) vec3 tangent_in;
 
-#define NR_POINT_LIGHTS 3
+#define NR_POINT_LIGHTS 4
 #define NR_TEXTURES 1
 
 struct PointLight {    
@@ -30,6 +30,7 @@ struct Texture {
 
 layout(binding = 1) uniform sampler2D diffuseTexture; // was not happy using implicit uniform
 layout(binding = 2) uniform sampler2D normalTexture;
+layout(binding = 3) uniform sampler2D roughnessTexture;
 
 uniform vec3 viewPos;
 uniform vec3 ballPos;
@@ -57,7 +58,7 @@ vec3 ambientColor = vec3(1, 1, 1);
 vec3 diffuseColor = vec3(1);
 vec3 emissionColor = vec3(0.0);
 
-float specularStrength = 1;
+float specularStrength = 0.15;
 
 vec3 lightColor = vec3(4);
 
@@ -130,6 +131,7 @@ void main()
             normal = texture(normalTexture, textureCoordinates).rgb * 2 - 1;
             diffuseColor = texture(diffuseTexture, textureCoordinates).rgb;
             normal = normalize(TBN * normal);
+            specularStrength = specularStrength/(pow(texture(roughnessTexture, textureCoordinates).r, 2));
 //            color = vec4(normal, 1.0);
     }
 

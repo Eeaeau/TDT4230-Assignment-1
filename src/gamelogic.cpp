@@ -47,6 +47,7 @@ SceneNode* staticLightNode2;
 SceneNode* staticLightNode3;
 SceneNode* animatedLightNode;
 SceneNode* textureAtlasNode;
+SceneNode* textEmptyNode;
 
 double ballRadius = 3.0f;
 
@@ -153,6 +154,7 @@ void initGame(GLFWwindow* window, CommandLineOptions gameOptions) {
     Mesh sphere = generateSphere(1.0, 40, 40);
     Mesh sphere2 = generateSphere(1.0, 40, 40);
     Mesh textMesh = generateTextGeometryBuffer("Click to begin!", 39 / 29, 0.5);
+    Mesh textEmptyMesh = generateTextGeometryBuffer("               ", 39 / 29, 0.5);
 
     // ------ Fill buffers ------ //
     unsigned int ballVAO = generateBuffer(sphere);
@@ -160,6 +162,7 @@ void initGame(GLFWwindow* window, CommandLineOptions gameOptions) {
     unsigned int boxVAO  = generateBuffer(box);
     unsigned int padVAO  = generateBuffer(pad);
     unsigned int textVAO = generateBuffer(textMesh);
+    unsigned int textEmptyVAO = generateBuffer(textEmptyMesh);
 
     // ------ Construct scene ------ //
     //create scene nodes 
@@ -173,6 +176,8 @@ void initGame(GLFWwindow* window, CommandLineOptions gameOptions) {
     //textureAtlasNode->position = glm::vec3(0, 0, -80);
     textureAtlasNode->position = boxCenter;
 
+    textEmptyNode = createSceneNode();
+    textEmptyNode->position = boxCenter;
     /*for (int i = 0; i < 3; ++i) {
         lightSources.push_back(createSceneNode());
     }*/
@@ -182,10 +187,10 @@ void initGame(GLFWwindow* window, CommandLineOptions gameOptions) {
     //    //node->nodeType = POINT_LIGHT;
     //}
 
-    //ballLightNode = createSceneNode();
-    //ballLightNode->nodeType = POINT_LIGHT;
-    //ballLightNode->lightColor = glm::vec3(0, 0, 8);
-    ////ballLightNode->lightColor = glm::vec3(8);
+    ballLightNode = createSceneNode();
+    ballLightNode->nodeType = POINT_LIGHT;
+    ballLightNode->lightColor = glm::vec3(10, 10, 10);
+    //ballLightNode->lightColor = glm::vec3(8);
 
     staticLightNode = createSceneNode();
     staticLightNode->nodeType = POINT_LIGHT;
@@ -205,10 +210,10 @@ void initGame(GLFWwindow* window, CommandLineOptions gameOptions) {
 
 
 
-    /*animatedLightNode = createSceneNode();
-    animatedLightNode->nodeType = POINT_LIGHT;
-    animatedLightNode->position = glm::vec3(0, 0, 1);
-    animatedLightNode->lightColor = glm::vec3(5, 0, 0);*/
+    //animatedLightNode = createSceneNode();
+    //animatedLightNode->nodeType = POINT_LIGHT;
+    //animatedLightNode->position = glm::vec3(0, 0, 1);
+    //animatedLightNode->lightColor = glm::vec3(5, 0, 0);
     //animatedLightNode->lightColor = glm::vec3(8);
 
     // attatch to scene graph
@@ -220,7 +225,8 @@ void initGame(GLFWwindow* window, CommandLineOptions gameOptions) {
     //rootNode->children.push_back(ball2Node);
 
     rootNode->children.push_back(textureAtlasNode);
-    //ballNode->children.push_back(ballLightNode);
+    rootNode->children.push_back(textEmptyNode);
+    ballNode->children.push_back(ballLightNode);
     rootNode->children.push_back(staticLightNode);
     rootNode->children.push_back(staticLightNode2);
     rootNode->children.push_back(staticLightNode3);
@@ -246,17 +252,28 @@ void initGame(GLFWwindow* window, CommandLineOptions gameOptions) {
 
     textureAtlasNode->vertexArrayObjectID = textVAO;
     textureAtlasNode->VAOIndexCount = textMesh.indices.size();
+    
+    textEmptyNode->vertexArrayObjectID = textEmptyVAO;
+    textEmptyNode->VAOIndexCount = textEmptyMesh.indices.size();
 
     // ------------------- textures ------------------- // 
 
     textureAtlasNode->nodeType = OVERLAY;
     textureAtlasNode->diffuseTexture = loadPNGFile("../res/textures/charmap.png");
-    unsigned int atlasNormalID = generateTexture(textureAtlasNode->diffuseTexture, false);
-    textureAtlasNode->diffuseTextureID = atlasNormalID;
+    unsigned int atlasDiffuseID = generateTexture(textureAtlasNode->diffuseTexture, false);
+    textureAtlasNode->diffuseTextureID = atlasDiffuseID;
+    
+    textEmptyNode->nodeType = OVERLAY;
+    //textEmptyNode->diffuseTexture = loadPNGFile("../res/textures/charmap.png");
+    unsigned int emptyDiffuseID = generateTexture(textureAtlasNode->diffuseTexture, false);
+    textEmptyNode->diffuseTextureID = emptyDiffuseID;
+
+
 
     boxNode->nodeType = TEXTURED_GEOMETRY;
     boxNode->diffuseTexture= loadPNGFile("../res/textures/Brick03_col.png");
     boxNode->normalTexture = loadPNGFile("../res/textures/Brick03_nrm.png");
+    boxNode->roughnessTexture = loadPNGFile("../res/textures/Brick03_rgh.png");
 
     //boxNode->diffuseTexture = brickDiffuse;
     //boxNode->normalTexture = brickNormal;
@@ -264,7 +281,9 @@ void initGame(GLFWwindow* window, CommandLineOptions gameOptions) {
     unsigned int brickDiffuseID = generateTexture(boxNode->diffuseTexture, false);
     boxNode->diffuseTextureID = brickDiffuseID;
     unsigned int brickNormalID = generateTexture(boxNode->normalTexture, false);
-    boxNode->normalTextureID = brickNormalID;
+    boxNode->normalTextureID = brickNormalID;    
+    unsigned int roughnessTextureID = generateTexture(boxNode->roughnessTexture, false);
+    boxNode->roughnessTextureID = roughnessTextureID;
     
     
     //padNode->nodeType = TEXTURED_GEOMETRY;
@@ -328,6 +347,9 @@ void updateFrame(GLFWwindow* window) {
             totalElapsedTime = debug_startTime;
             gameElapsedTime = debug_startTime;
             hasStarted = true;
+
+            textureAtlasNode->VAOIndexCount = textEmptyNode->VAOIndexCount;
+            textureAtlasNode->vertexArrayObjectID = textEmptyNode->vertexArrayObjectID;
         }
 
         ballPosition.x = ballMinX + (1 - padPositionX) * (ballMaxX - ballMinX);
@@ -543,6 +565,7 @@ void renderNode(SceneNode* node) {
             glUniform1i(shader->getUniformFromName("useTexture"), 1);
             glBindTextureUnit(1, node->diffuseTextureID);
             glBindTextureUnit(2, node->normalTextureID);
+            glBindTextureUnit(3, node->roughnessTextureID);
             
         /*    glBindTextureUnit(shader->getUniformFromName("texture_in.diffuse"), node->diffuseTextureID);
             glBindTextureUnit(shader->getUniformFromName("texture_in.normal"), node->normalTextureID);*/

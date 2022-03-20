@@ -26,8 +26,7 @@ out layout(location = 5) mat3 TBN;
 out layout(location = 9) vec3 tangent_out;
 
 // out layout(location = 7) vec3 lightPos_out;
-//out vec3 fragPos;
-//out vec3 aTestVar;
+
 
 
 void main()

@@ -61,6 +61,7 @@ struct SceneNode {
 
 	PNGImage diffuseTexture;
 	PNGImage normalTexture;
+	PNGImage roughnessTexture;
 
 	// The Model matrix for preserving angles is needed
 	glm::mat4 modelMatrix;
@@ -80,6 +81,7 @@ struct SceneNode {
 	unsigned int VAOIndexCount;
 	unsigned int diffuseTextureID;
 	unsigned int normalTextureID;
+	unsigned int roughnessTextureID;
 
 	// The ID used for of lights 
 	unsigned lightID;
