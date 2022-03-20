@@ -70,31 +70,52 @@ float quadratic = 0.0032; // for some reason uniform did not work for this one
 float ballBaseRadius = 1;
 float ballSoftRadius = ballBaseRadius*2;
 
-vec3 CalcPointLight(PointLight pointLight, vec3 normal, vec3 fragPos, vec3 viewDir) {
+
+vec3 CalcPointLight(PointLight pointLight, vec3 normal, vec3 fragPos, vec3 viewDir, bool Blinn) {
     
         vec3 lightVec = pointLight.position - fragPos; 
         vec3 lightDir = normalize(lightVec); 
 
-        // diffuse shading
-        float diff = max(dot(normal, lightDir), 0.0);
+        float diff;
 
-        // specular shading
-        vec3 reflectDir = reflect(-lightDir, normal);
-        float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
+        vec3 reflectDir;
+        float spec;
+
+        if (Blinn) {
+            vec3 dirToLight = normalize(-lightDir);
+
+            // diffuse shading
+            diff = max(dot(normal, dirToLight), 0.0);
+
+             // specular shading
+            //        vec3 reflectDir = reflect(-lightDir, normal);
+            vec3 halfwayDir = normalize(dirToLight + viewDir);
+            float spec = pow(max(dot(viewDir, halfwayDir), 0.0), 32);
+            //        float spec = pow(max(dot(halfwayDir,normal ), 0.0), 32);
+        }
+
+        else {
+
+            // diffuse shading
+            diff = max(dot(normal, lightDir), 0.0);
+
+            reflectDir = reflect(-lightDir, normal);
+            spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
+        }
 
         // attuantion
         float lightDist = distance(lightDir, fragPos);
-        float attenuation =  1.0/ (pointLight.constant + pointLight.linear * lightDist + quadratic * (lightDist * lightDist));   
+        float attenuation =  1.0/ (pointLight.constant + pointLight.linear * lightDist + quadratic * pow(lightDist, 2));   
+//        float attenuation =  1.0/ (pointLight.constant + pointLight.linear * lightDist + quadratic * lightDist*lightDist);   
 
         // shadow 
-
         vec3 ballVec = ballPos - fragPos;
 //        vec3 ballDir = normalize(ballVec);
         
         float shadeFactor = 1.0;
         float shadeSoftFactor = 0.0;
 
-        if (length(ballVec)<length(lightVec) && dot(lightVec, ballVec) >= 0) { //branching not optimal for performance
+        if (length(ballVec)<length(lightVec) && dot(lightVec, ballVec) >= 0) { // branching not optimal for performance
             vec3 reject = CalcReject(ballVec, lightVec);
 //            vec3 rejectDir = normalize(reject);
             
@@ -121,6 +142,8 @@ vec3 CalcPointLight(PointLight pointLight, vec3 normal, vec3 fragPos, vec3 viewD
 
 
 
+
+
 void main()
 {
     vec3 normal = normalize(normal_in);
@@ -137,7 +160,7 @@ void main()
 
     for	(int i = 0; i < NR_POINT_LIGHTS; i++) {
 
-        result += CalcPointLight(pointLights[i], normal, fragPos, viewDir);
+        result += CalcPointLight(pointLights[i], normal, fragPos, viewDir, false);
 
     }
 
